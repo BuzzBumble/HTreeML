@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func test(c byte) bool {
+func test(c rune) bool {
 	return c != ' '
 }
 
@@ -15,5 +15,5 @@ func main() {
 	//	fmt.Printf("%c\n", p.consumeChar())
 	//}
 
-	fmt.Println(p.consumeWhile(test))
+	fmt.Println(p.parseTagName())
 }
