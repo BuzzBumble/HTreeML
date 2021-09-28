@@ -14,17 +14,17 @@ type ElementNode struct {
 	data     ElementData
 }
 
+type ElementData struct {
+	tagName    string
+	attributes AttrMap
+}
+
+type AttrMap map[string]string
+
 func (n *TextNode) toString() string {
 	return "TextNode"
 }
 
 func (n *ElementNode) toString() string {
 	return "ElementNode"
-}
-
-type AttrMap map[string]string
-
-type ElementData struct {
-	tagName    string
-	attributes AttrMap
 }

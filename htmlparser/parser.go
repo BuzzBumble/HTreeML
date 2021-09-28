@@ -39,6 +39,15 @@ func (p *Parser) consumeChar() rune {
 	return c
 }
 
+// Error out if consumed char is not c
+func (p *Parser) consumeCheck(c rune) {
+	consumed := p.consumeChar()
+	if c != consumed {
+		fmt.Printf("Parser.consumeCheck(): Expected %c; got %c\n", c, consumed)
+		os.Exit(1)
+	}
+}
+
 // Consume all characters while test() returns true
 // Return string containing all consumed characters
 func (p *Parser) consumeWhile(test func(c rune) bool) string {
@@ -73,13 +82,27 @@ func (p *Parser) parseText() *TextNode {
 // Parse opening/closing tags, attributes, and child nodes
 // Return a new ElementNode containing all parsed data
 func (p *Parser) parseElement() *ElementNode {
-	c := p.consumeChar()
-	if c != '<' {
-		fmt.Printf("Parser.parseElement(): Expected [<]; got [%c]\n", c)
-		os.Exit(1)
+	p.consumeCheck('<')
+
+	tagName := p.parseWord()
+	attrs := p.parseAttrs()
+	p.consumeCheck('>')
+
+	children := p.parseNodes()
+
+	p.consumeCheck('<')
+	p.consumeCheck('/')
+	closingTagName := p.parseWord()
+	if closingTagName != tagName {
+		fmt.Printf("Parser.parseElement(): Closing tag %s does not match opening tag %s\n", closingTagName, tagName)
 	}
-	// Parse Attributes
-	return nil
+	p.consumeCheck('>')
+
+	e := new(ElementNode)
+	e.data = ElementData{tagName, attrs}
+	e.children = children
+
+	return e
 }
 
 // Parse a single Text/Element Node

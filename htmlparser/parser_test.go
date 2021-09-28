@@ -8,18 +8,19 @@ import (
 var testFile = "test.html"
 var p = new(Parser)
 var data, err = os.ReadFile(testFile)
-var s = string(data)
+var htmlstring = string(data)
 
 func reset(p *Parser) {
 	p.pos = 0
-	p.input = s
+	p.input = htmlstring
 }
 
-func TestNextChar(t *testing.T) {
+func TestParseElement(t *testing.T) {
 	reset(p)
-	c := p.nextChar()
-	c2 := rune(s[0])
-	if c != c2 {
-		t.Errorf("Got %c; want %c", c, c2)
+
+	e := p.parseElement()
+
+	if e.data.tagName != "html" {
+		t.Errorf("Expected tagName = html; Got %s", e.data.tagName)
 	}
 }
