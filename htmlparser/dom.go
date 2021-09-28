@@ -1,4 +1,4 @@
-package main
+package htmlparser
 
 type Node interface {
 	toString() string
