@@ -15,5 +15,5 @@ func main() {
 	//	fmt.Printf("%c\n", p.consumeChar())
 	//}
 
-	fmt.Println(p.parseTagName())
+	fmt.Println(p.parseWord())
 }

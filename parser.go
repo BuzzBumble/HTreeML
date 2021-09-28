@@ -8,29 +8,39 @@ import (
 	"unicode"
 )
 
+// Parsing struct and functions
+
+// Parser
+// Basic struct for parsing a string
 type Parser struct {
 	pos   int
 	input string
 }
 
+// Return the character at pos
 func (p *Parser) nextChar() rune {
 	return rune(p.input[p.pos])
 }
 
+// Check if string (starting at pos) starts with s
 func (p *Parser) startsWith(s string) bool {
 	return strings.HasPrefix(p.input[p.pos:], s)
 }
 
+// Check if string has been fully consumed
 func (p *Parser) eof() bool {
 	return (p.pos >= len(p.input))
 }
 
+// Consume the character and advance pos
 func (p *Parser) consumeChar() rune {
 	c := rune(p.input[p.pos])
 	p.pos++
 	return c
 }
 
+// Consume all characters while test() returns true
+// Return string containing all consumed characters
 func (p *Parser) consumeWhile(test func(c rune) bool) string {
 	b := new(bytes.Buffer)
 	for !p.eof() && test(p.nextChar()) {
@@ -39,22 +49,29 @@ func (p *Parser) consumeWhile(test func(c rune) bool) string {
 	return b.String()
 }
 
+// Consume all whitespace characters from pos
 func (p *Parser) consumeWhitespace() {
 	p.consumeWhile(unicode.IsSpace)
 }
 
-func (p *Parser) parseTagName() string {
+// Consume all letters/digits from pos
+// Return string representing a word
+func (p *Parser) parseWord() string {
 	return p.consumeWhile(func(c rune) bool {
 		return unicode.IsLetter(c) || unicode.IsDigit(c)
 	})
 }
 
+// Parse text up to the next '<'
+// Return a new TextNode containing consumed text
 func (p *Parser) parseText() *TextNode {
 	t := new(TextNode)
 	t.text = p.consumeWhile(func(c rune) bool { return c != '<' })
 	return t
 }
 
+// Parse opening/closing tags, attributes, and child nodes
+// Return a new ElementNode containing all parsed data
 func (p *Parser) parseElement() *ElementNode {
 	c := p.consumeChar()
 	if c != '<' {
@@ -65,8 +82,19 @@ func (p *Parser) parseElement() *ElementNode {
 	return nil
 }
 
+// Parse a single Text/Element Node
+func (p *Parser) parseNode() Node {
+	c := p.nextChar()
+	if c == '<' {
+		return p.parseElement()
+	}
+	return p.parseText()
+}
+
+// Parse element attribute
+// Return 2 strings: name, value
 func (p *Parser) parseAttr() (string, string) {
-	n := p.parseTagName()
+	n := p.parseWord()
 	c := p.consumeChar()
 	if c != '=' {
 		fmt.Printf("Parser.parseAttr(): Expected [=]; got [%c]\n", c)
@@ -78,6 +106,8 @@ func (p *Parser) parseAttr() (string, string) {
 	return n, v
 }
 
+// Parse attribute value
+// Consumes all characters from opening to closing quotes
 func (p *Parser) parseAttrValue() string {
 	q := p.consumeChar()
 	if q != '"' && q != '\'' {
@@ -94,4 +124,28 @@ func (p *Parser) parseAttrValue() string {
 	return v
 }
 
-// TODO: Add parseAttrs
+// Parse attributes of element
+// Returns a map where key = attr name, value = attr value
+func (p *Parser) parseAttrs() map[string]string {
+	r := make(map[string]string)
+
+	p.consumeWhitespace()
+	for p.nextChar() != '>' {
+		p.consumeWhitespace()
+		n, v := p.parseAttr()
+		r[n] = v
+	}
+	return r
+}
+
+// Parse until eof and return slice of Nodes
+func (p *Parser) parseNodes() []Node {
+	r := make([]Node, 0)
+
+	p.consumeWhitespace()
+	for !p.eof() && !p.startsWith("</") {
+		r = append(r, p.parseNode())
+	}
+
+	return r
+}

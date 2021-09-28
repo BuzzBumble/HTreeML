@@ -1,6 +1,7 @@
 package main
 
 type Node interface {
+	toString() string
 }
 
 type TextNode struct {
@@ -11,6 +12,14 @@ type TextNode struct {
 type ElementNode struct {
 	children []Node
 	data     ElementData
+}
+
+func (n *TextNode) toString() string {
+	return "TextNode"
+}
+
+func (n *ElementNode) toString() string {
+	return "ElementNode"
 }
 
 type AttrMap map[string]string
