@@ -38,7 +38,11 @@ func (n *ElementNode) printNode(level int) {
 	for i := 0; i < level; i++ {
 		fmt.Print("  ")
 	}
-	fmt.Printf("<%s>\n", n.toString())
+	fmt.Printf("<%s", n.toString())
+	for k, v := range n.data.attributes {
+		fmt.Printf(" %s=\"%s\"", k, v)
+	}
+	fmt.Println(">")
 	for _, c := range n.children {
 		c.printNode(level + 1)
 	}
