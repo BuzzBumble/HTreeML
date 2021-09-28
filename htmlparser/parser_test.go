@@ -23,4 +23,9 @@ func TestParseElement(t *testing.T) {
 	if e.data.tagName != "html" {
 		t.Errorf("Expected tagName = html; Got %s", e.data.tagName)
 	}
+	if len(e.children) != 2 {
+		t.Errorf("Expected 2 children; Got %d", len(e.children))
+	}
+
+	e.printNode(0)
 }

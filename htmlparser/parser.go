@@ -75,7 +75,7 @@ func (p *Parser) parseWord() string {
 // Return a new TextNode containing consumed text
 func (p *Parser) parseText() *TextNode {
 	t := new(TextNode)
-	t.text = p.consumeWhile(func(c rune) bool { return c != '<' })
+	t.text = strings.TrimSpace(p.consumeWhile(func(c rune) bool { return c != '<' }))
 	return t
 }
 
@@ -95,8 +95,10 @@ func (p *Parser) parseElement() *ElementNode {
 	closingTagName := p.parseWord()
 	if closingTagName != tagName {
 		fmt.Printf("Parser.parseElement(): Closing tag %s does not match opening tag %s\n", closingTagName, tagName)
+		os.Exit(1)
 	}
 	p.consumeCheck('>')
+	p.consumeWhitespace()
 
 	e := new(ElementNode)
 	e.data = ElementData{tagName, attrs}
@@ -107,8 +109,7 @@ func (p *Parser) parseElement() *ElementNode {
 
 // Parse a single Text/Element Node
 func (p *Parser) parseNode() Node {
-	c := p.nextChar()
-	if c == '<' {
+	if p.nextChar() == '<' {
 		return p.parseElement()
 	}
 	return p.parseText()
@@ -167,6 +168,7 @@ func (p *Parser) parseNodes() []Node {
 
 	p.consumeWhitespace()
 	for !p.eof() && !p.startsWith("</") {
+		p.consumeWhitespace()
 		r = append(r, p.parseNode())
 	}
 
