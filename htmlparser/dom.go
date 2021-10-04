@@ -6,7 +6,7 @@ import (
 
 type Node interface {
 	toString() string
-	printNode(level int)
+	PrintNode(level int)
 }
 
 type TextNode struct {
@@ -34,7 +34,7 @@ func (n *ElementNode) toString() string {
 	return n.data.tagName
 }
 
-func (n *ElementNode) printNode(level int) {
+func (n *ElementNode) PrintNode(level int) {
 	for i := 0; i < level; i++ {
 		fmt.Print("  ")
 	}
@@ -44,7 +44,7 @@ func (n *ElementNode) printNode(level int) {
 	}
 	fmt.Println(">")
 	for _, c := range n.children {
-		c.printNode(level + 1)
+		c.PrintNode(level + 1)
 	}
 	for i := 0; i < level; i++ {
 		fmt.Print("  ")
@@ -52,7 +52,7 @@ func (n *ElementNode) printNode(level int) {
 	fmt.Printf("</%s>\n", n.toString())
 }
 
-func (n *TextNode) printNode(level int) {
+func (n *TextNode) PrintNode(level int) {
 	for i := 0; i < level; i++ {
 		fmt.Print("  ")
 	}

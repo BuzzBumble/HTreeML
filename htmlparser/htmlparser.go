@@ -8,49 +8,49 @@ import (
 	"unicode"
 )
 
-// Parsing struct and functions
+// Parsing struct and functions for HTML
 
-// Parser
-// Basic struct for parsing a string
-type Parser struct {
+// HTMLHTMLParser
+// Basic struct for parsing HTML
+type HTMLParser struct {
 	pos   int
 	input string
 }
 
 // Return the character at pos
-func (p *Parser) nextChar() rune {
+func (p *HTMLParser) nextChar() rune {
 	return rune(p.input[p.pos])
 }
 
 // Check if string (starting at pos) starts with s
-func (p *Parser) startsWith(s string) bool {
+func (p *HTMLParser) startsWith(s string) bool {
 	return strings.HasPrefix(p.input[p.pos:], s)
 }
 
 // Check if string has been fully consumed
-func (p *Parser) eof() bool {
+func (p *HTMLParser) eof() bool {
 	return (p.pos >= len(p.input))
 }
 
 // Consume the character and advance pos
-func (p *Parser) consumeChar() rune {
+func (p *HTMLParser) consumeChar() rune {
 	c := rune(p.input[p.pos])
 	p.pos++
 	return c
 }
 
 // Error out if consumed char is not c
-func (p *Parser) consumeCheck(c rune) {
+func (p *HTMLParser) consumeCheck(c rune) {
 	consumed := p.consumeChar()
 	if c != consumed {
-		fmt.Printf("Parser.consumeCheck(): Expected %c; got %c\n", c, consumed)
+		fmt.Printf("HTMLParser.consumeCheck(): Expected %c; got %c\n", c, consumed)
 		os.Exit(1)
 	}
 }
 
 // Consume all characters while test() returns true
 // Return string containing all consumed characters
-func (p *Parser) consumeWhile(test func(c rune) bool) string {
+func (p *HTMLParser) consumeWhile(test func(c rune) bool) string {
 	b := new(bytes.Buffer)
 	for !p.eof() && test(p.nextChar()) {
 		b.WriteByte(byte(p.consumeChar()))
@@ -59,13 +59,13 @@ func (p *Parser) consumeWhile(test func(c rune) bool) string {
 }
 
 // Consume all whitespace characters from pos
-func (p *Parser) consumeWhitespace() {
+func (p *HTMLParser) consumeWhitespace() {
 	p.consumeWhile(unicode.IsSpace)
 }
 
 // Consume all letters/digits from pos
 // Return string representing a word
-func (p *Parser) parseWord() string {
+func (p *HTMLParser) parseWord() string {
 	return p.consumeWhile(func(c rune) bool {
 		return unicode.IsLetter(c) || unicode.IsDigit(c)
 	})
@@ -73,7 +73,7 @@ func (p *Parser) parseWord() string {
 
 // Parse text up to the next '<'
 // Return a new TextNode containing consumed text
-func (p *Parser) parseText() *TextNode {
+func (p *HTMLParser) parseText() *TextNode {
 	t := new(TextNode)
 	t.text = strings.TrimSpace(p.consumeWhile(func(c rune) bool { return c != '<' }))
 	return t
@@ -81,7 +81,7 @@ func (p *Parser) parseText() *TextNode {
 
 // Parse opening/closing tags, attributes, and child nodes
 // Return a new ElementNode containing all parsed data
-func (p *Parser) parseElement() *ElementNode {
+func (p *HTMLParser) parseElement() *ElementNode {
 	p.consumeCheck('<')
 
 	tagName := p.parseWord()
@@ -94,7 +94,7 @@ func (p *Parser) parseElement() *ElementNode {
 	p.consumeCheck('/')
 	closingTagName := p.parseWord()
 	if closingTagName != tagName {
-		fmt.Printf("Parser.parseElement(): Closing tag %s does not match opening tag %s\n", closingTagName, tagName)
+		fmt.Printf("HTMLParser.parseElement(): Closing tag %s does not match opening tag %s\n", closingTagName, tagName)
 		os.Exit(1)
 	}
 	p.consumeCheck('>')
@@ -108,7 +108,7 @@ func (p *Parser) parseElement() *ElementNode {
 }
 
 // Parse a single Text/Element Node
-func (p *Parser) parseNode() Node {
+func (p *HTMLParser) parseNode() Node {
 	if p.nextChar() == '<' {
 		return p.parseElement()
 	}
@@ -117,11 +117,11 @@ func (p *Parser) parseNode() Node {
 
 // Parse element attribute
 // Return 2 strings: name, value
-func (p *Parser) parseAttr() (string, string) {
+func (p *HTMLParser) parseAttr() (string, string) {
 	n := p.parseWord()
 	c := p.consumeChar()
 	if c != '=' {
-		fmt.Printf("Parser.parseAttr(): Expected [=]; got [%c]\n", c)
+		fmt.Printf("HTMLParser.parseAttr(): Expected [=]; got [%c]\n", c)
 		os.Exit(1)
 	}
 
@@ -132,16 +132,16 @@ func (p *Parser) parseAttr() (string, string) {
 
 // Parse attribute value
 // Consumes all characters from opening to closing quotes
-func (p *Parser) parseAttrValue() string {
+func (p *HTMLParser) parseAttrValue() string {
 	q := p.consumeChar()
 	if q != '"' && q != '\'' {
-		fmt.Printf("Parser.parseAttrValue(): Expected opening quote; Got [%c]\n", q)
+		fmt.Printf("HTMLParser.parseAttrValue(): Expected opening quote; Got [%c]\n", q)
 		os.Exit(1)
 	}
 	v := p.consumeWhile(func(c rune) bool { return c != q })
 	q2 := p.consumeChar()
 	if q != q2 {
-		fmt.Printf("Parser.consumeWhile(): Expected closing quote [%c]; Got [%c]\n", q, q2)
+		fmt.Printf("HTMLParser.consumeWhile(): Expected closing quote [%c]; Got [%c]\n", q, q2)
 		os.Exit(1)
 	}
 
@@ -150,7 +150,7 @@ func (p *Parser) parseAttrValue() string {
 
 // Parse attributes of element
 // Returns a map where key = attr name, value = attr value
-func (p *Parser) parseAttrs() map[string]string {
+func (p *HTMLParser) parseAttrs() map[string]string {
 	r := make(map[string]string)
 
 	p.consumeWhitespace()
@@ -163,7 +163,7 @@ func (p *Parser) parseAttrs() map[string]string {
 }
 
 // Parse until eof and return slice of Nodes
-func (p *Parser) parseNodes() []Node {
+func (p *HTMLParser) parseNodes() []Node {
 	r := make([]Node, 0)
 
 	p.consumeWhitespace()
@@ -173,4 +173,19 @@ func (p *Parser) parseNodes() []Node {
 	}
 
 	return r
+}
+
+func Parse(s string) Node {
+	p := new(HTMLParser)
+	p.input = s
+	p.pos = 0
+
+	nodes := p.parseNodes()
+	if len(nodes) == 1 {
+		return nodes[0]
+	} else {
+		root := ElementNode{children: nodes}
+		root.data = ElementData{tagName: "html"}
+		return &root
+	}
 }
